@@ -26,6 +26,7 @@ class GameClient(cmd.Cmd):
         super(GameClient, self).__init__()
 
         self.rpc = rpc_client
+        self.session_token = None
 
     def say(self, msg):
         logging.info(msg)
@@ -34,19 +35,26 @@ class GameClient(cmd.Cmd):
         """
         Starts a game session at target server
         """
-        data = self.rpc.start()
+        if not self.session_token:
+            data = self.rpc.login()
+            self.session_token = data['player_token']
+            self.say("Welcome to the dire world of {1}, {0}!".format(data['player_name'],
+                                                                     data['server_name']))
+        else:
+            self.say("You are already logged in -- nothing to do")
 
-        self.say("Welcome to the dire world of {1}, {0}!".format(data['player_name'],
-                                                                 data['server_name']))
-
-    def do_quit(self, _):
+    def do_logoff(self, _):
         """
         Quits a session
         """
 
-        self.say("Goodbye")
+        if self.session_token:
+            self.rpc.logoff(self.session_token)
+            self.say("Goodbye")
 
-        return True
+            return True
+        else:
+            self.say("You are not logged in -- nothing to do")
 
 
 def main():
