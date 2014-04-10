@@ -15,6 +15,30 @@ import uuid
 logging.basicConfig(level=logging.INFO)
 
 
+class LinearDungeon:
+    """
+    A simple linear dungeon, consisting of several lined up rooms, like:
+
+    Entrance -> Room_1 -> Room_2
+
+    :arg rooms: the ones consisting this dungeon
+    """
+
+    def __init__(self, *rooms):
+        self.rooms = list(rooms)
+
+        for p, n in zip(self.rooms[:-1], self.rooms[1:]):
+            p.add_door(n)
+            n.add_door(p)
+
+    def entrance(self):
+        """
+        Returns this dungeon's entrance, i.e. the first room
+        """
+
+        return self.rooms[0]
+
+
 class Room:
     """
     Represents a room in a dungeon.
@@ -23,9 +47,17 @@ class Room:
     """
     def __init__(self, description="basic room"):
         self.description = description
+        self.neighbours = []
+
+    def add_door(self, room):
+        """
+        Adds given ``room`` as a neighbour
+        """
+
+        self.neighbours.append(room)
 
     def describe(self):
-        return self.description
+        return "{0}. There are {1} exits.".format(self.description, len(self.neighbours))
 
 
 class Player:
@@ -49,6 +81,12 @@ class Player:
         return "<Player name='{0}'>".format(self.name)
 
 
+DUNGEON = LinearDungeon(Room('small entrance chamber'),
+                        Room('long hallway'),
+                        Room('large cavern'),
+                        Room('dreadly treasury'))
+
+
 class GameServer:
     """
     Implements actual MUD server
@@ -58,6 +96,7 @@ class GameServer:
 
     def __init__(self, name):
         self.name = name
+        self.dungeon = DUNGEON
 
         self.players = {}
 
@@ -85,6 +124,8 @@ class GameServer:
         token = str(uuid.uuid4())
 
         self.players[token] = player
+
+        player.location = self.dungeon.entrance()
 
         logging.info("Player {} has logged on".format(player))
 
