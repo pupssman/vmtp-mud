@@ -5,7 +5,58 @@ It contains a core entry point ``main`` that is used to run actual client
 
 @author: pupssman
 """
+import cmd
+import logging
+import xmlrpc.client
+
+from argparse import ArgumentParser
+
+logging.basicConfig(level=logging.INFO)
+
+
+class GameClient(cmd.Cmd):
+    """
+    Implements client-side operations
+    """
+
+    intro = 'Welcome! Type ? (question mark) to see available commands.'
+    prompt = 'MUD >> '
+
+    def __init__(self, rpc_client):
+        super(GameClient, self).__init__()
+
+        self.rpc = rpc_client
+
+    def say(self, msg):
+        logging.info(msg)
+
+    def do_login(self, _):
+        """
+        Starts a game session at target server
+        """
+        data = self.rpc.start()
+
+        self.say("Welcome to the dire world of {1}, {0}!".format(data['player_name'],
+                                                                 data['server_name']))
+
+    def do_quit(self, _):
+        """
+        Quits a session
+        """
+
+        self.say("Goodbye")
+
+        return True
 
 
 def main():
-    print("Hello, world -- I am MUD client!")
+    parser = ArgumentParser()
+    parser.add_argument('--server', dest='server', required=True, help='URL of teh server.')
+
+    args = parser.parse_args()
+
+    GameClient(xmlrpc.client.ServerProxy(args.server)).cmdloop()
+
+
+if __name__ == '__main__':
+    main()

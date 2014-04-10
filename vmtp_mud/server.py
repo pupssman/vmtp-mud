@@ -9,13 +9,29 @@ It contains a core entry point ``main`` that is used to run server -- it blocks 
 import xmlrpc.server
 
 import logging
+import random
+import string
 logging.basicConfig(level=logging.INFO)
 
 
 class GameServer:
     """
     Implements actual MUD server
+
+    :arg name: a ``Name`` of this server
     """
+
+    def __init__(self, name):
+        self.name = name
+
+    def start(self):
+        """
+        Called on start of the game
+
+        Returns a map with ``server_name`` and ``player_name`` entries.
+        """
+        return {"server_name": self.name,
+                "player_name": "Player_{}".format(''.join(random.sample(string.ascii_letters, 5)))}
 
 
 def main():
@@ -25,7 +41,7 @@ def main():
 
     server = xmlrpc.server.SimpleXMLRPCServer((host, port))
 
-    server.register_instance(GameServer())
+    server.register_instance(GameServer('Nowhere'))
 
     logging.info("MUD serving at enpoint http://{0}:{1}/".format(host, port))
     logging.info("Press Ctrl-C to stop")
