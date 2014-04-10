@@ -56,6 +56,15 @@ class GameClient(cmd.Cmd):
         else:
             self.say("You are not logged in -- nothing to do")
 
+    def do_look(self, _):
+        """
+        Reports current surroundings, if any
+        """
+        if not self.session_token:
+            self.say("You are not logged in yet")
+        else:
+            self.say(self.rpc.look(self.session_token))
+
 
 def main():
     parser = ArgumentParser()

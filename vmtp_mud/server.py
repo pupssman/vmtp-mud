@@ -15,6 +15,40 @@ import uuid
 logging.basicConfig(level=logging.INFO)
 
 
+class Room:
+    """
+    Represents a room in a dungeon.
+
+    :arg description: a player-visible description of a room, like 'big room' or 'narrow corridor'
+    """
+    def __init__(self, description="basic room"):
+        self.description = description
+
+    def describe(self):
+        return self.description
+
+
+class Player:
+    """
+    Represents PC.
+    """
+    def __init__(self, name):
+        self.name = name
+        self.location = None
+
+    def look(self):
+        """
+        Reports current surroundings in text form
+        """
+        if not self.location:
+            return "You appear to be nowhere"
+        else:
+            return self.location.describe()
+
+    def __repr__(self):
+        return "<Player name='{0}'>".format(self.name)
+
+
 class GameServer:
     """
     Implements actual MUD server
@@ -26,6 +60,14 @@ class GameServer:
         self.name = name
 
         self.players = {}
+
+    def look(self, token):
+        """
+        Performs a mud's classical ``look`` -- report current surroundings for a given player
+        """
+        if token not in self.players:
+            raise ValueError('Unknown player')
+        return self.players[token].look()
 
     def login(self):
         """
@@ -39,25 +81,25 @@ class GameServer:
         Returns a map with ``server_name`` and ``player_name`` entries.
         """
 
-        name = "Player_{}".format(''.join(random.sample(string.ascii_letters, 5)))
+        player = Player("Mighty {}".format(''.join(random.sample(string.ascii_letters, 5))))
         token = str(uuid.uuid4())
 
-        self.players[token] = name
+        self.players[token] = player
 
-        logging.info("Player <{}> has logged on".format(name))
+        logging.info("Player {} has logged on".format(player))
 
         return {"server_name": self.name,
-                "player_name": name,
+                "player_name": player.name,
                 "player_token": token}
 
     def logoff(self, token):
         if token in self.players:
             player = self.players.pop(token)
-            logging.info("Player <{}> has logged off".format(player))
+            logging.info("Player {} has logged off".format(player))
         else:
-            logging.warn("Received logoff for unknown token <{}>".format(token))
+            raise ValueError('Unknown player')
 
-        return True  # cas we cant return None
+        return True  # cause we can't return None
 
 
 def main():
