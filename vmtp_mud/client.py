@@ -65,6 +65,18 @@ class GameClient(cmd.Cmd):
         else:
             self.say(self.rpc.look(self.session_token))
 
+    def do_take_exit(self, exit_nmb):
+        """
+        Go throught the door number X
+        """
+        if not self.session_token:
+            self.say("You are not logged in yet")
+        else:
+            if exit_nmb.isdigit():
+                self.say(self.rpc.take_exit(self.session_token, int(exit_nmb)))
+            else:
+                self.say("<{}> is not a valid number".format(exit_nmb))
+
 
 def main():
     parser = ArgumentParser()

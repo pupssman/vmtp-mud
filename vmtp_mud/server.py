@@ -56,6 +56,9 @@ class Room:
 
         self.neighbours.append(room)
 
+    def where_leads(self, exit_num):
+        return exit_num < len(self.neighbours) and self.neighbours[exit_num] or None
+
     def describe(self):
         return "{0}. There are {1} exits.".format(self.description, len(self.neighbours))
 
@@ -75,7 +78,21 @@ class Player:
         if not self.location:
             return "You appear to be nowhere"
         else:
-            return self.location.describe()
+            return "You are in a {}".format(self.location.describe())
+
+    def take_exit(self, exit_num):
+        """
+        Take a given exit from the current location, if possible.
+
+        :arg exit_num: number of exit, starting from 1
+
+        Returns user message.
+        """
+        if self.location and self.location.where_leads(exit_num - 1):
+            self.location = self.location.where_leads(exit_num - 1)
+            return "You have passed a doorway"
+        else:
+            return "This is impossible"
 
     def __repr__(self):
         return "<Player name='{0}'>".format(self.name)
@@ -107,6 +124,14 @@ class GameServer:
         if token not in self.players:
             raise ValueError('Unknown player')
         return self.players[token].look()
+
+    def take_exit(self, token, exit_nmb):
+        """
+        Player tries to move through given exit
+        """
+        if token not in self.players:
+            raise ValueError('Unknown player')
+        return self.players[token].take_exit(exit_nmb)
 
     def login(self):
         """
