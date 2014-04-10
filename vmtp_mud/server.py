@@ -19,6 +19,7 @@ class GameServer:
 
 
 def main():
+    # FIXME: that needs to be determined properly
     host = '127.0.0.1'
     port = 8081
 
