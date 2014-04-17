@@ -7,6 +7,8 @@ import pytest
 import multiprocessing as mp
 
 from vmtp_mud.server import main as srv_main
+from vmtp_mud.client import GameClient
+
 import xmlrpc
 import time
 
@@ -28,5 +30,27 @@ def server():
     process.join()
 
 
+@pytest.fixture(scope='function')
+def client(server):
+    """
+    Return patched client ``GameClient`` targeting current ``server``.
+
+    Client has attribute ``messages`` where all the ``client.say`` messages go.
+    """
+    class PatchedClient(GameClient):
+        messages = []
+
+        def say(self, msg):
+            self.messages.append(msg)
+
+    return PatchedClient(server)
+
+
 def test_login_works(server):
     assert server.login()
+
+
+def test_client_login_welcomes_player(client):
+    client.do_login('')
+
+    assert 'Welcome' in client.messages[-1]
